@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="th" data-theme="krabi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>เที่ยวไทย · Thailand Travel</title>
+  <meta name="description" content="ค้นพบจุดหมายใหม่ ๆ ทั่วประเทศไทย เชียงใหม่ ภูเก็ต กระบี่ กรุงเทพฯ พร้อมแพ็กเกจทริปที่คัดสรร">
+  <meta name="theme-color" content="#f6efe2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23123c2b%22/%3E%3Cpath d=%22M5 22c4-3 7-3 11 0s7 3 11 0%22 stroke=%22%233cb8b2%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500&family=Montserrat:wght@500;600&display=swap">
+  <link rel="preload" as="image" href="assets/img/krabi.jpg">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">ข้ามไปยังเนื้อหา</a>
+
+  <header class="site-header" id="top">
+    <div class="site-header__inner">
+      <a class="brand" href="#top" aria-label="เที่ยวไทย หน้าแรก">
+        <span class="brand__th">เที่ยวไทย</span>
+        <span class="brand__en">Thailand Travel</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <span class="visually-hidden">เมนู</span>
+      </button>
+
+      <nav class="site-nav" id="site-nav" aria-label="เมนูหลัก">
+        <a href="#top" data-nav="top" aria-current="page">หน้าแรก</a>
+        <a href="#destinations" data-nav="destinations">จุดหมายปลายทาง</a>
+        <a href="#packages" data-nav="packages">แพ็กเกจทัวร์</a>
+      </nav>
+
+      <form class="search" role="search" autocomplete="off" novalidate>
+        <label class="visually-hidden" for="search-input">ค้นหาจุดหมาย</label>
+        <svg class="search__icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input id="search-input" type="search" placeholder="ค้นหาจุดหมาย เช่น เชียงใหม่"
+          role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list">
+        <ul class="search__results" id="search-results" role="listbox" hidden></ul>
+        <p class="search__status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Destination scenery: one photo layer per theme, cross-faded by data-theme on <html> -->
+    <div class="scenery" aria-hidden="true">
+      <div class="scenery__scene" data-scene="krabi"></div>
+      <div class="scenery__scene" data-scene="bangkok"></div>
+      <div class="scenery__scene" data-scene="chiang-mai"></div>
+    </div>
+
+    <section class="hero" aria-roledescription="carousel" aria-label="จุดหมายแนะนำ">
+      <div class="carousel">
+        <div class="carousel__track"></div>
+        <div class="carousel__footer">
+          <div class="carousel__dots" role="tablist" aria-label="เลือกสไลด์"></div>
+          <div class="carousel__arrows">
+            <button class="round-btn" type="button" data-dir="-1" aria-label="สไลด์ก่อนหน้า">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+            </button>
+            <button class="round-btn" type="button" data-dir="1" aria-label="สไลด์ถัดไป">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="destinations" aria-labelledby="destinations-title">
+      <header class="section-head">
+        <div>
+          <p class="section-head__tag">Places to go</p>
+          <h2 class="section-head__title" id="destinations-title">สถานที่ที่คุณอยากไป</h2>
+        </div>
+        <p class="section-head__note">สู่จุดหมาย สีสันของประเทศไทย<br>เลือกที่ที่ตรงกับใจคุณ</p>
+      </header>
+      <ul class="dest-grid" role="list"></ul>
+    </section>
+
+    <section class="section section--packages" id="packages" aria-labelledby="packages-title">
+      <header class="section-head">
+        <div>
+          <p class="section-head__tag">Selected journeys</p>
+          <h2 class="section-head__title" id="packages-title">แพ็กเกจที่คัดสรร</h2>
+        </div>
+        <p class="section-head__note">ทริปเล็ก ๆ ที่ออกแบบมาให้คุณได้ชื่นชม<br>รสชาติท้องถิ่น ธรรมชาติและอาหารชั้นนำ</p>
+      </header>
+      <ul class="pkg-grid" role="list"></ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <a class="brand brand--light" href="#top">
+          <span class="brand__th">เที่ยวไทย</span>
+          <span class="brand__en">Thailand Travel</span>
+        </a>
+        <p>ค้นพบจุดหมายใหม่ ๆ ทั่วประเทศไทย<br>ไปด้วยกัน</p>
+      </div>
+      <nav class="site-footer__col" aria-label="ลิงก์ส่วนท้าย">
+        <h2>สำรวจ</h2>
+        <a href="#top">หน้าแรก</a>
+        <a href="#destinations">จุดหมายปลายทาง</a>
+        <a href="#packages">แพ็กเกจทัวร์</a>
+      </nav>
+      <div class="site-footer__col">
+        <h2>ติดต่อ</h2>
+        <a href="mailto:hello@tiewthai.co">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="1.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg>
+          hello@tiewthai.co
+        </a>
+        <a href="tel:+6620000000">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6.6 3.5h2.6l1.4 4-1.9 1.3a11 11 0 0 0 6.5 6.5l1.3-1.9 4 1.4v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z"/></svg>
+          +66 2 000 0000
+        </a>
+      </div>
+    </div>
+    <p class="site-footer__credit">© 2026 เที่ยวไทย · ภาพถ่ายจาก Wikimedia Commons — <a href="CREDITS.md">เครดิตภาพ</a></p>
+  </footer>
+
+  <!-- Shared detail / inquiry dialog -->
+  <dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+    <form method="dialog" class="sheet__close-form">
+      <button class="sheet__close round-btn" value="close" aria-label="ปิด">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </form>
+    <div class="sheet__body"></div>
+  </dialog>
+
+  <!-- Component templates -->
+  <template id="tpl-slide">
+    <figure class="slide">
+      <img class="slide__img" alt="" decoding="async">
+      <figcaption class="slide__caption">
+        <span class="slide__en"></span>
+        <span class="slide__th"></span>
+        <span class="slide__sub"></span>
+      </figcaption>
+    </figure>
+  </template>
+
+  <template id="tpl-dest">
+    <li class="dest-card">
+      <img class="dest-card__img" alt="" loading="lazy" decoding="async">
+      <div class="dest-card__top"><span class="dest-card__region"></span><span class="dest-card__num"></span></div>
+      <div class="dest-card__body">
+        <span class="dest-card__en"></span>
+        <h3 class="dest-card__th"><button type="button" class="dest-card__link"></button></h3>
+        <p class="dest-card__desc"></p>
+        <span class="dest-card__arrow round-btn round-btn--light" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </span>
+      </div>
+    </li>
+  </template>
+
+  <template id="tpl-pkg">
+    <li class="pkg-card">
+      <div class="pkg-card__media"><img alt="" loading="lazy" decoding="async"><span class="pkg-card__badge"></span></div>
+      <div class="pkg-card__body">
+        <span class="pkg-card__where"></span>
+        <h3 class="pkg-card__title"><button type="button" class="pkg-card__link" data-action="details"></button></h3>
+        <p class="pkg-card__meta"></p>
+        <div class="pkg-card__foot">
+          <p class="pkg-card__price"><strong></strong> <span>/ ท่าน</span></p>
+          <button type="button" class="pkg-card__inquire" data-action="inquire">สอบถามเส้นทาง
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
