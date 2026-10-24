@@ -3,7 +3,7 @@ import { packagePlans } from "../content";
 export default function Packages() {
   return (
     <section className="packages" id="packages" aria-labelledby="packages-heading">
-      <div className="section-heading section-heading--center">
+      <div className="section-heading">
         <div>
           <p className="eyebrow eyebrow--center">
             <span className="eyebrow__line" />

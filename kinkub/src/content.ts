@@ -6,6 +6,7 @@ export type Destination = {
   blurb: string;
   index: string;
   color: string;
+  image: string;
 };
 
 export const destinations: Destination[] = [
@@ -17,6 +18,7 @@ export const destinations: Destination[] = [
     blurb: "ดอยสุเทพ เมืองเก่า และไอหมอกแห่งขุนเขา",
     index: "01",
     color: "#40593c",
+    image: "/images/chiangmai-temple.webp",
   },
   {
     id: "phuket",
@@ -26,6 +28,7 @@ export const destinations: Destination[] = [
     blurb: "หาดทรายสีขาว น้ำทะเลสีมรกต และแสงอาทิตย์ยามเย็น",
     index: "02",
     color: "#355e61",
+    image: "/images/phuket-beach.webp",
   },
   {
     id: "krabi",
@@ -35,6 +38,7 @@ export const destinations: Destination[] = [
     blurb: "หน้าผาหินปูน เรือหางยาว และหมู่เกาะที่เงียบสงบ",
     index: "03",
     color: "#7d532c",
+    image: "/images/krabi-boats.webp",
   },
   {
     id: "bangkok",
@@ -44,6 +48,7 @@ export const destinations: Destination[] = [
     blurb: "พระนครเก่า ตลาดกลางคืน และรสชาติที่ไม่เคยหลับ",
     index: "04",
     color: "#453b32",
+    image: "/images/bangkok-golden.webp",
   },
 ];
 
@@ -55,6 +60,8 @@ export type ShowcaseSlide = {
   image: string;
   alt: string;
   position: string;
+  backgroundTint: string;
+  backgroundImage: string;
 };
 
 export const showcaseSlides: ShowcaseSlide[] = [
@@ -66,6 +73,8 @@ export const showcaseSlides: ShowcaseSlide[] = [
     image: "/images/krabi-boats.webp",
     alt: "เรือหางยาวจอดอยู่หน้าผาหินปูนกลางทะเลกระบี่",
     position: "50% 62%",
+    backgroundTint: "#9bd3cd",
+    backgroundImage: "/images/phuket-beach.webp",
   },
   {
     id: "chiang-mai",
@@ -75,6 +84,8 @@ export const showcaseSlides: ShowcaseSlide[] = [
     image: "/images/chiangmai-temple.webp",
     alt: "วัดล้านนาสีทองท่ามกลางท้องฟ้าสีฟ้าในเชียงใหม่",
     position: "50% 55%",
+    backgroundTint: "#8ea46e",
+    backgroundImage: "/images/chiangmai-temple.webp",
   },
   {
     id: "bangkok",
@@ -84,6 +95,8 @@ export const showcaseSlides: ShowcaseSlide[] = [
     image: "/images/bangkok-golden.webp",
     alt: "ภาพมุมสูงของพระบรมมหาราชวังยามค่ำในกรุงเทพฯ",
     position: "50% 58%",
+    backgroundTint: "#d7a56d",
+    backgroundImage: "/images/bangkok-golden.webp",
   },
 ];
 

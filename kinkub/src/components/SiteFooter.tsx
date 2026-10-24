@@ -2,18 +2,17 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <span className="site-footer__watermark" aria-hidden="true">
-        เที่ยวไทย
+        กินกับ
       </span>
 
       <div className="site-footer__inner">
         <div className="site-footer__brand">
           <a className="site-footer__wordmark" href="#main">
-            เที่ยวไทย
-            <span>THAILAND TRAVEL</span>
+            กินกับ
+            <span>KinKub · TRAVEL TOGETHER</span>
           </a>
           <p>
-            การเดินทางที่ออกแบบเพื่อให้คุณได้ใช้เวลาอยู่กับปัจจุบัน
-            จากดอยทางเหนือจรดทะเลอันดามัน
+            หาเพื่อนร่วมทาง วางแผนเที่ยวด้วยกัน แล้วแวะกินร้านเด็ดระหว่างทาง
           </p>
         </div>
 
@@ -21,7 +20,7 @@ export default function SiteFooter() {
           <h2>สำรวจ</h2>
           <a href="#main">หน้าแรก</a>
           <a href="#destinations">จุดหมายปลายทาง</a>
-          <a href="#packages">แพ็กเกจทัวร์</a>
+          <a href="/login?next=/trips">หา Buddy และไกด์</a>
         </nav>
 
         <div className="site-footer__contact" id="contact">
@@ -33,7 +32,7 @@ export default function SiteFooter() {
       </div>
 
       <div className="site-footer__bottom">
-        <span>© 2569 เที่ยวไทย · สงวนลิขสิทธิ์</span>
+        <span>© 2569 KinKub · กินกับ</span>
         <span className="site-footer__credits">
           ภาพและวิดีโอจาก{" "}
           <a href="https://pixabay.com/" target="_blank" rel="noreferrer">

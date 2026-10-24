@@ -21,10 +21,10 @@ function TitleText({
     return (
       <>
         <text {...shared} x="400" y="238" fontSize="138" textAnchor="middle">
-          การท่องเที่ยว
+          กิน
         </text>
         <text {...shared} x="400" y="438" fontSize="138" textAnchor="middle">
-          ไทย
+          กับ
         </text>
       </>
     );
@@ -32,7 +32,7 @@ function TitleText({
 
   return (
     <text {...shared} x="800" y="330" fontSize="210" textAnchor="middle">
-      การท่องเที่ยวไทย
+      กินกับ
     </text>
   );
 }
@@ -276,7 +276,7 @@ export default function CinematicIntro() {
     <section
       ref={wrapperRef}
       className={`cinema${reducedMotion ? " cinema--static" : ""}`}
-      aria-label="บทนำการท่องเที่ยวไทย"
+      aria-label="บทนำวิดีโอ กินกับ"
     >
       <div ref={stageRef} className="cinema__stage">
         <div className="cinema__backdrop" aria-hidden="true">
@@ -295,8 +295,8 @@ export default function CinematicIntro() {
               skipAnimation();
             }}
           >
-            เที่ยวไทย
-            <span>THAILAND TRAVEL</span>
+            กินกับ
+            <span>KinKub · TRAVEL TOGETHER</span>
           </a>
           <span className="cinema__volume">VOL. 01 · 2569</span>
           <button className="cinema__skip" type="button" onClick={skipAnimation}>
@@ -311,14 +311,14 @@ export default function CinematicIntro() {
           <div className="cinema__chrome-fade">
             <p className="cinema__kicker">
               <span />
-              A CINEMATIC JOURNEY THROUGH THAILAND
+              BUDDY · LOCAL GUIDES · TRIP PLANS
               <span />
             </p>
           </div>
 
           <div className="cinema__title-shell">
             <div className="cinema__title-reveal">
-              <h1 className="cinema__title" aria-label="การท่องเที่ยวไทย">
+              <h1 className="cinema__title" aria-label="กินกับ">
                 <svg
                   className="cine-title"
                   viewBox={viewBox}
@@ -376,16 +376,16 @@ export default function CinematicIntro() {
 
           <div className="cinema__chrome-fade">
             <p className="cinema__sub">
-              จากทะเลอันดามัน <span>สู่</span> ขุนเขาแห่งล้านนา
+              หา Buddy หรือไกด์ท้องถิ่น <span>·</span> วางแผนเที่ยวด้วยกัน
             </p>
           </div>
         </div>
 
         <div className="cinema__bottom">
           <span className="cinema__meta">
-            8.03° N · 98.80° E
+            BUDDY GROUPS · 2–3 PEOPLE
             <br />
-            ANDAMAN SEA, THAILAND
+            LOCAL GUIDES · THAILAND
           </span>
 
           <span className="cinema__scroll-cue">
@@ -394,9 +394,9 @@ export default function CinematicIntro() {
           </span>
 
           <span className="cinema__meta cinema__meta--right">
-            PHOTOGRAPHED IN THAILAND
+            PLAN · CHAT · CONFIRM
             <br />
-            VOL. 01 / 2569
+            TRAVEL · EAT · REVIEW
           </span>
         </div>
 
