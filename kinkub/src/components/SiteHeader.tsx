@@ -10,7 +10,6 @@ const navigation = [
   { label: "หน้าแรก", href: "#main" },
   { label: "จุดหมายปลายทาง", href: "#destinations" },
   { label: "หาเพื่อนเที่ยว", href: "/login?next=/trips", action: "login" },
-  { label: "แพ็กเกจทัวร์", href: "#packages" },
 ];
 
 export default function SiteHeader({ query, onQueryChange, onExploreTrips }: Props) {
@@ -33,9 +32,9 @@ export default function SiteHeader({ query, onQueryChange, onExploreTrips }: Pro
   return (
     <header className="site-header">
       <div className="site-header__bar">
-        <a className="wordmark" href="#main" aria-label="เที่ยวไทย หน้าแรก">
-          เที่ยวไทย
-          <span>THAILAND TRAVEL</span>
+        <a className="wordmark" href="#main" aria-label="กินกับ KinKub หน้าแรก">
+          กินกับ
+          <span>KinKub · TRAVEL TOGETHER</span>
         </a>
 
         <nav className={`site-nav${menuOpen ? " is-open" : ""}`} aria-label="เมนูหลัก">

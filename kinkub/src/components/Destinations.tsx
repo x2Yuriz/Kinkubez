@@ -51,8 +51,11 @@ export default function Destinations({ query, onClear }: Props) {
             <a
               className="destination-card"
               key={destination.id}
-              href="#packages"
-              style={{ "--card-color": destination.color } as CSSProperties}
+              href={`/login?next=/trips&destination=${encodeURIComponent(destination.id)}`}
+              style={{
+                "--card-color": destination.color,
+                "--card-image": `url(${destination.image})`,
+              } as CSSProperties}
             >
               <span className="destination-card__index">{destination.index}</span>
               <span className="destination-card__region">{destination.region}</span>

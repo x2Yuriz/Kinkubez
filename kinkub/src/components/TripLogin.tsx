@@ -17,7 +17,7 @@ export default function TripLogin({ onHome, onLogin }: Props) {
     <main className="trip-login-page">
       <section className="trip-login-photo" aria-label="บรรยากาศเที่ยวเชียงใหม่">
         <a className="trip-login-brand" href="/" onClick={returnHome}>
-          เที่ยวไทย <span>THAILAND TRAVEL</span>
+          กินกับเว้ย <span>KinKub</span>
         </a>
         <div className="trip-login-photo__caption">
           <span>CHIANG MAI · NORTHERN THAILAND</span>

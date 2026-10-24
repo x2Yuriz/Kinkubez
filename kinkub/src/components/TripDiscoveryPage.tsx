@@ -11,7 +11,10 @@ const heroScenes = [
 ];
 
 export default function TripDiscoveryPage({ onHome }: Props) {
-  const [destination, setDestination] = useState("เชียงใหม่");
+  const [destination, setDestination] = useState(() => {
+    const requestedId = new URLSearchParams(window.location.search).get("destination");
+    return destinations.find((place) => place.id === requestedId)?.name ?? "เชียงใหม่";
+  });
   const [date, setDate] = useState("");
   const [partySize, setPartySize] = useState("1");
 
@@ -29,9 +32,9 @@ export default function TripDiscoveryPage({ onHome }: Props) {
     <div className="trip-product-page">
       <a className="skip-link" href="#trip-discovery">ข้ามไปยังรายการทริป</a>
       <header className="trip-product-header">
-        <a className="trip-product-brand" href="/" onClick={returnHome} aria-label="เที่ยวไทย กลับหน้าแรก">
+        <a className="trip-product-brand" href="/" onClick={returnHome} aria-label="กินกับเว้ย KinKub กลับหน้าแรก">
           <span className="trip-product-brand__symbol" aria-hidden="true">↗</span>
-          <span className="trip-product-brand__copy">เที่ยวไทย<small>THAILAND TRAVEL</small></span>
+          <span className="trip-product-brand__copy">กินกับเว้ย<small>KinKub</small></span>
         </a>
         <nav className="trip-product-nav" aria-label="เมนูสมาชิก">
           <a href="/" onClick={returnHome}>หน้าแรก</a>
