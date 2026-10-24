@@ -1,23 +1,33 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type MouseEvent } from "react";
 
 type Props = {
   query: string;
   onQueryChange: (value: string) => void;
+  onExploreTrips: () => void;
 };
 
 const navigation = [
   { label: "หน้าแรก", href: "#main" },
   { label: "จุดหมายปลายทาง", href: "#destinations" },
+  { label: "หาเพื่อนเที่ยว", href: "/login?next=/trips", action: "login" },
   { label: "แพ็กเกจทัวร์", href: "#packages" },
 ];
 
-export default function SiteHeader({ query, onQueryChange }: Props) {
+export default function SiteHeader({ query, onQueryChange, onExploreTrips }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     document.getElementById("destinations")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleNavigation = (event: MouseEvent<HTMLAnchorElement>, action?: string) => {
+    setMenuOpen(false);
+    if (action === "login") {
+      event.preventDefault();
+      onExploreTrips();
+    }
   };
 
   return (
@@ -30,7 +40,7 @@ export default function SiteHeader({ query, onQueryChange }: Props) {
 
         <nav className={`site-nav${menuOpen ? " is-open" : ""}`} aria-label="เมนูหลัก">
           {navigation.map((item) => (
-            <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+            <a key={item.href} href={item.href} onClick={(event) => handleNavigation(event, item.action)}>
               {item.label}
             </a>
           ))}
@@ -69,6 +79,10 @@ export default function SiteHeader({ query, onQueryChange }: Props) {
           ) : null}
         </form>
 
+        <button className="site-header__login" type="button" onClick={onExploreTrips}>
+          เข้าสู่ระบบ
+        </button>
+
         <button
           className={`menu-toggle${menuOpen ? " is-open" : ""}`}
           type="button"
@@ -87,10 +101,13 @@ export default function SiteHeader({ query, onQueryChange }: Props) {
       <div className="site-header__mobile" id="mobile-navigation" hidden={!menuOpen}>
         <nav className="site-nav site-nav--mobile" aria-label="เมนูหลักบนมือถือ">
           {navigation.map((item) => (
-            <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+            <a key={item.href} href={item.href} onClick={(event) => handleNavigation(event, item.action)}>
               {item.label}
             </a>
           ))}
+          <button type="button" onClick={() => { setMenuOpen(false); onExploreTrips(); }}>
+            เข้าสู่ระบบ
+          </button>
         </nav>
       </div>
     </header>
