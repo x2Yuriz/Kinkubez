@@ -1,6 +1,23 @@
+import { useEffect, useState } from "react";
 import { packagePlans } from "../content";
+import { listPackages } from "../lib/api";
+import { isSupabaseConfigured } from "../lib/supabase";
+
+type Plan = { id: string; tag: string; title: string; english: string; meta: string; price: string; image: string; alt: string };
 
 export default function Packages() {
+  // Published packages from Supabase (RLS hides drafts); the bundled list is the offline fallback.
+  const [plans, setPlans] = useState<Plan[]>(packagePlans);
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    listPackages()
+      .then((rows) => {
+        const live = rows.filter((row) => row.is_published);
+        if (live.length) setPlans(live.map((row) => ({ ...row, price: row.price_thb.toLocaleString("th-TH") })));
+      })
+      .catch(() => undefined);
+  }, []);
+
   return (
     <section className="packages" id="packages" aria-labelledby="packages-heading">
       <div className="section-heading">
@@ -20,7 +37,7 @@ export default function Packages() {
       </div>
 
       <div className="packages__grid">
-        {packagePlans.map((plan) => (
+        {plans.map((plan) => (
           <article className="package-card" key={plan.id}>
             <div className="package-card__media">
               <img

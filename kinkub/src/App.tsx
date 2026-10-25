@@ -7,12 +7,21 @@ import SiteFooter from "./components/SiteFooter";
 import SiteHeader from "./components/SiteHeader";
 import TripDiscoveryPage from "./components/TripDiscoveryPage";
 import TripLogin from "./components/TripLogin";
+import { AuthCallback } from "./components/AuthCallback";
+import { AccountPage } from "./components/AccountPage";
+import { MyTripsPage } from "./components/MyTripsPage";
+import { AdminPage } from "./components/AdminPage";
+import { navigate } from "./lib/router";
 
-type Route = "home" | "login" | "trips";
+type Route = "home" | "login" | "trips" | "callback" | "account" | "my-trips" | "admin";
 
 function routeFromPath(pathname: string): Route {
   if (pathname.startsWith("/trips")) return "trips";
   if (pathname.startsWith("/login")) return "login";
+  if (pathname.startsWith("/auth/callback")) return "callback";
+  if (pathname.startsWith("/account")) return "account";
+  if (pathname.startsWith("/my-trips")) return "my-trips";
+  if (pathname.startsWith("/admin")) return "admin";
   return "home";
 }
 
@@ -27,28 +36,16 @@ export default function App() {
     return () => window.removeEventListener("popstate", syncRoute);
   }, []);
 
-  const navigate = (path: string) => {
-    window.history.pushState({}, "", path);
-    setRoute(routeFromPath(path));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const changeScene = (scene: ShowcaseSlide) => setActiveScene(scene);
 
-  if (route === "login") {
-    return (
-      <TripLogin
-        onHome={() => navigate("/")}
-        onLogin={() => {
-          const destination = new URLSearchParams(window.location.search).get("destination");
-          navigate(destination ? `/trips?destination=${encodeURIComponent(destination)}` : "/trips");
-        }}
-      />
-    );
-  }
+  if (route === "login") return <TripLogin onHome={() => navigate("/")} />;
+  if (route === "callback") return <AuthCallback />;
+  if (route === "account") return <AccountPage />;
+  if (route === "my-trips") return <MyTripsPage />;
+  if (route === "admin") return <AdminPage />;
 
   if (route === "trips") {
-    return <TripDiscoveryPage onHome={() => navigate("/")} />;
+    return <TripDiscoveryPage />;
   }
 
   return (

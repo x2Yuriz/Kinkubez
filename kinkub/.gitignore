@@ -5,3 +5,10 @@ dist/
 /freebuff-sites-build/
 
 .vite-cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/

@@ -58,7 +58,7 @@ export default function SiteHeader({ query, onQueryChange, onExploreTrips }: Pro
             onKeyDown={(event) => {
               if (event.key === "Escape") onQueryChange("");
             }}
-            placeholder="ค้นหาจุดหมาย เช่น เชียงใหม่"
+            placeholder="ค้นหาจุดหมาย เช่น เชียงใหม่…"
             aria-label="ค้นหาจุดหมายปลายทาง"
           />
           {query ? (

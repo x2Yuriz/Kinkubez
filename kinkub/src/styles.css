@@ -67,6 +67,8 @@
 html {
   scroll-behavior: smooth;
   background: var(--forest-deep);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -193,12 +195,9 @@ figure {
   overflow: hidden;
 }
 
-.cinema--static {
-  height: auto;
-}
-
-.cinema--static .cinema__stage {
-  position: relative;
+.cinema--reduced {
+  /* Keep a shorter, manually controlled scroll runway; no autoplay. */
+  height: 180svh;
 }
 
 .cinema__backdrop,
@@ -1667,6 +1666,10 @@ figure {
     height: 250svh;
   }
 
+  .cinema--reduced {
+    height: 160svh;
+  }
+
   .cinema__top {
     padding: 20px;
   }
@@ -1952,6 +1955,7 @@ figure {
   }
 
   .cinema__title-reveal {
+    animation: none !important;
     clip-path: none !important;
     opacity: 1 !important;
   }
@@ -2743,4 +2747,192 @@ figure {
   .home-purpose__steps li { padding-top: 10px; }
   .home-purpose__steps h3 { font-size: 18px; }
   .home-purpose__steps p { font-size: 13px; }
+}
+
+/* ==========================================================================
+   KinKub backend UI (account, my trips, admin, trip detail, states)
+   ========================================================================== */
+.kk-page, .kk-dialog, .kk-profile, .kk-center-page {
+  --kk-ink: #163c30;
+  --kk-forest: #103c2f;
+  --kk-leaf: #436a4b;
+  --kk-lime: #d4e28c;
+  --kk-sand: #f3eddb;
+  --kk-paper: #fffdf6;
+  --kk-line: #dedbcb;
+  --kk-muted: #68766c;
+  --kk-focus: #ba9b5c;
+  --kk-danger: #9c2f22;
+}
+.kk-page { min-height: 100vh; background: var(--kk-sand); color: var(--kk-ink); font-family: var(--font-body); overflow-x: clip; }
+.kk-main { width: min(1120px, 100% - 32px); margin: 0 auto; padding: 32px 0 72px; display: grid; gap: 24px; }
+.kk-page__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+.kk-page__head h1, .kk-section h2, .kk-panel h2, .kk-dialog h2 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; color: var(--kk-forest); }
+.kk-page__head h1 { font-size: clamp(28px, 4vw, 40px); }
+.kk-section, .kk-panel { background: var(--kk-paper); border: 1px solid var(--kk-line); border-radius: 18px; padding: clamp(16px, 3vw, 28px); min-width: 0; }
+.kk-section h2, .kk-panel h2 { font-size: 22px; margin-bottom: 12px; }
+.kk-panel__bar, .kk-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.kk-stack { display: grid; gap: 14px; }
+.kk-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.kk-span-2 { grid-column: 1 / -1; }
+.kk-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.kk-kicker { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--kk-leaf); }
+.kk-muted { color: var(--kk-muted); font-size: 14px; }
+.kk-prose { line-height: 1.7; max-width: 68ch; }
+.kk-visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Buttons */
+.kk-button, .kk-header-login {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px; border: 1px solid var(--kk-forest, #103c2f); border-radius: 999px;
+  background: var(--kk-forest, #103c2f); color: #fffdf6; font: 600 14px/1 var(--font-body); cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.kk-button:hover, .kk-header-login:hover { background: var(--kk-leaf, #436a4b); border-color: var(--kk-leaf, #436a4b); }
+.kk-button--ghost { background: transparent; color: var(--kk-forest); }
+.kk-button--ghost:hover { background: var(--kk-sand); color: var(--kk-forest); }
+.kk-button:disabled, .kk-link-button:disabled { opacity: .55; cursor: not-allowed; }
+.kk-link-button { background: none; border: 0; padding: 4px 0; color: var(--kk-leaf, #436a4b); font: inherit; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 32px; }
+.kk-page :focus-visible, .kk-dialog :focus-visible, .kk-profile :focus-visible, .kk-header-login:focus-visible,
+.kk-google:focus-visible, .trip-login-skip:focus-visible, .trip-finder__selection-actions button:focus-visible {
+  outline: 3px solid #ba9b5c; outline-offset: 2px;
+}
+
+/* Chips, badges, status */
+.kk-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #d4e28c; color: #103c2f; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.kk-badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #9c2f22; color: #fff; font-size: 11px; font-weight: 700; font-style: normal; }
+.kk-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--kk-sand); color: var(--kk-ink); border: 1px solid var(--kk-line); white-space: nowrap; }
+.kk-status--pending { background: #fbf0cf; border-color: #e7cf86; color: #6b4f0b; }
+.kk-status--confirmed, .kk-status--published { background: #e3edc4; border-color: #b9cd7d; color: #2f4a1b; }
+.kk-status--completed { background: #dbe8e0; border-color: #a9c4b2; color: #1d4030; }
+.kk-status--rejected, .kk-status--cancelled { background: #f6dfda; border-color: #e0aea4; color: #7c2418; }
+.kk-status--draft { background: #ece9df; border-color: #d2cdbd; color: #545a50; }
+.kk-stars { color: #b8892f; letter-spacing: 1px; }
+
+/* Avatar */
+.kk-avatar { display: inline-grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 50%; overflow: hidden; background: #c8b993; color: #103c2f; font-weight: 700; font-size: 14px; object-fit: cover; }
+.kk-avatar-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+/* State messages */
+.kk-state { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--kk-line, #dedbcb); background: var(--kk-paper, #fffdf6); color: var(--kk-ink, #163c30); font-size: 14px; line-height: 1.55; }
+.kk-state > :not(.kk-state__mark) { grid-column: 2; margin: 0; }
+.kk-state strong { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+.kk-state__mark { grid-row: 1 / span 3; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--kk-sand, #f3eddb); font-weight: 700; }
+.kk-state--success { background: #f0f5df; border-color: #c4d58e; }
+.kk-state--success .kk-state__mark { background: #d4e28c; color: #2f4a1b; }
+.kk-state--error, .kk-state--denied { background: #fbefec; border-color: #e6bdb3; }
+.kk-state--error .kk-state__mark, .kk-state--denied .kk-state__mark { background: #f1cbc2; color: #7c2418; }
+.kk-state--empty { background: transparent; border-style: dashed; }
+.kk-state--info .kk-state__mark { background: #dfe8e2; }
+.kk-spinner { display: inline-block; width: 20px; height: 20px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: kk-spin .8s linear infinite; opacity: .7; }
+.kk-state--loading .kk-state__mark { background: transparent; }
+@keyframes kk-spin { to { transform: rotate(360deg); } }
+.kk-center-page { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--kk-sand); }
+.kk-center-page > * { width: min(480px, 100%); }
+.kk-form-error { margin: 0; padding: 10px 12px; border-radius: 10px; background: #fbefec; color: #7c2418; font-size: 13px; line-height: 1.5; }
+
+/* Flash */
+.kk-flash { position: fixed; z-index: 60; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(440px, calc(100% - 32px)); padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(16, 37, 26, .2); font-size: 14px; }
+.kk-flash--success { background: #103c2f; color: #fffdf6; }
+.kk-flash--error { background: #7c2418; color: #fff; }
+
+/* Forms */
+.kk-form { display: grid; gap: 14px; }
+.kk-form__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.kk-form--inline { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.kk-form label, .kk-booking label, .kk-toolbar label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--kk-ink); min-width: 0; }
+.kk-form input:not([type="checkbox"]):not([type="file"]), .kk-form select, .kk-form textarea,
+.kk-booking select, .kk-booking textarea, .kk-toolbar input, .kk-toolbar select, .kk-table select {
+  width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--kk-line); border-radius: 10px;
+  background: #fff; color: var(--kk-ink); font: 400 15px/1.4 var(--font-body);
+}
+.kk-form textarea, .kk-booking textarea { min-height: 72px; resize: vertical; }
+.kk-check { display: flex !important; align-items: center; gap: 8px; font-weight: 500 !important; }
+.kk-check input { width: 18px; height: 18px; accent-color: #436a4b; }
+.kk-upload { display: grid; gap: 8px; padding: 14px; border: 1px dashed var(--kk-line); border-radius: 12px; background: var(--kk-sand); }
+.kk-upload input[type="file"] { max-width: 100%; font-size: 13px; }
+
+/* Tabs */
+.kk-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; border-bottom: 1px solid var(--kk-line); scrollbar-width: thin; }
+.kk-tabs button { flex: none; min-height: 44px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--kk-muted); font: 600 14px var(--font-body); cursor: pointer; }
+.kk-tabs button[aria-selected="true"] { color: var(--kk-forest); border-bottom-color: #436a4b; }
+.kk-tabpanel { min-width: 0; padding-top: 18px; }
+
+/* Cards and lists */
+.kk-cards { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.kk-cards--grid { grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+.kk-card { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--kk-line); border-radius: 14px; background: #fff; min-width: 0; }
+.kk-card.is-muted { opacity: .65; }
+.kk-card__top { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.kk-card h3 { margin: 0; font: 600 17px/1.3 var(--font-display); overflow-wrap: anywhere; }
+.kk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.kk-list li { padding: 12px 14px; border: 1px solid var(--kk-line, #dedbcb); border-radius: 12px; background: #fff; overflow-wrap: anywhere; }
+.kk-list li p { margin: 6px 0 0; }
+.kk-list li.is-unread { border-left: 4px solid #436a4b; background: #f6f9ec; }
+.kk-timeline { list-style: none; margin: 0 0 8px; padding: 0 0 0 18px; border-left: 2px solid var(--kk-lime, #d4e28c); display: grid; gap: 12px; }
+.kk-timeline li { position: relative; }
+.kk-timeline li::before { content: ""; position: absolute; left: -24px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: #436a4b; }
+.kk-timeline p { margin: 4px 0 0; color: var(--kk-muted, #68766c); font-size: 14px; }
+.kk-itinerary { display: grid; gap: 8px; }
+.kk-itinerary__row { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 8px; align-items: start; }
+
+/* Tables */
+.kk-table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--kk-line); border-radius: 12px; background: #fff; -webkit-overflow-scrolling: touch; }
+.kk-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px; }
+.kk-table th, .kk-table td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--kk-line); }
+.kk-table th { background: var(--kk-sand); font-size: 12px; font-weight: 700; color: var(--kk-muted); white-space: nowrap; }
+.kk-table tr:last-child td { border-bottom: 0; }
+.kk-subtable { margin: 0; padding-left: 18px; font-size: 13px; }
+.kk-json { max-width: 320px; margin: 0; padding: 6px 8px; overflow: auto; border-radius: 8px; background: var(--kk-sand); font: 12px/1.4 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+
+/* Header profile menu (overrides .trip-product-profile span) */
+.kk-profile { position: relative; }
+.kk-profile .kk-profile__trigger { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px 4px 4px; border: 1px solid var(--kk-line); border-radius: 999px; background: var(--kk-paper); color: var(--kk-ink); font: 600 14px var(--font-body); cursor: pointer; }
+.kk-profile .kk-profile__trigger i { display: inline; font-style: normal; }
+.trip-product-profile.kk-profile span.kk-profile__name { width: auto; height: auto; border-radius: 0; background: none; display: inline; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trip-product-profile.kk-profile span.kk-avatar { width: 32px; height: 32px; }
+.kk-profile__menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 50; display: grid; min-width: 220px; padding: 8px; border: 1px solid var(--kk-line); border-radius: 14px; background: var(--kk-paper); box-shadow: 0 16px 40px rgba(16, 37, 26, .18); }
+.kk-profile__menu[hidden] { display: none; }
+.kk-profile__menu button { min-height: 40px; padding: 0 12px; border: 0; border-radius: 8px; background: none; color: var(--kk-ink); text-align: left; font: 500 14px var(--font-body); cursor: pointer; }
+.kk-profile__menu button:hover { background: var(--kk-sand); }
+.kk-profile__role { margin: 4px 12px 8px; color: var(--kk-muted); font-size: 12px; }
+.kk-header-login { min-height: 40px; }
+
+/* Trip detail dialog */
+.kk-dialog { width: min(720px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 0; border-radius: 20px; background: var(--kk-paper); color: var(--kk-ink); font-family: var(--font-body); overflow: auto; }
+.kk-dialog::backdrop { background: rgba(16, 37, 26, .55); }
+.kk-dialog__body { position: relative; display: grid; gap: 12px; padding: clamp(18px, 4vw, 32px); }
+.kk-dialog__body h2 { font-size: clamp(22px, 3.5vw, 30px); padding-right: 40px; }
+.kk-dialog__body h3 { margin: 10px 0 0; font: 600 17px var(--font-display); color: var(--kk-forest); }
+.kk-dialog__close { position: absolute; top: 12px; right: 12px; z-index: 1; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255, 253, 246, .92); color: var(--kk-ink); font-size: 24px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); }
+.kk-dialog__image { width: calc(100% + 2 * clamp(18px, 4vw, 32px)); max-width: none; margin: calc(-1 * clamp(18px, 4vw, 32px)) calc(-1 * clamp(18px, 4vw, 32px)) 4px; aspect-ratio: 16 / 7; object-fit: cover; }
+.kk-booking { display: grid; gap: 12px; margin-top: 8px; padding: 16px; border-radius: 14px; background: var(--kk-sand); }
+.kk-booking__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.kk-booking__price strong { font: 600 24px var(--font-display); color: var(--kk-forest); }
+.kk-booking__price .kk-muted { margin-left: auto; }
+
+/* Login page buttons (override .trip-login-form button) */
+.trip-login-form .kk-google { justify-content: center; gap: 12px; background: #fff; color: #1f1f1f; border: 1px solid #dadce0; }
+.trip-login-form .kk-google:hover:not(:disabled) { background: #f6f8f6; }
+.trip-login-form .kk-google:disabled { opacity: .6; cursor: progress; }
+.trip-login-form .trip-login-skip { justify-content: center; background: transparent; color: var(--trip-ink, #163c30); border: 1px solid var(--trip-line, #dedbcb); }
+.trip-login-form .trip-login-skip:hover { background: rgba(212, 226, 140, .25); }
+
+/* Trip finder selection actions */
+.trip-finder__selection-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.trip-finder__selection-actions button { min-height: 36px; padding: 0 12px; border: 1px solid #103c2f; border-radius: 999px; background: #103c2f; color: #fffdf6; font: 600 12px var(--font-body); cursor: pointer; }
+.trip-finder__selection-actions button.is-quiet { background: transparent; color: #103c2f; }
+
+@media (max-width: 760px) {
+  .kk-main { padding-top: 20px; }
+  .kk-grid-2, .kk-form__grid { grid-template-columns: 1fr; }
+  .kk-itinerary__row { grid-template-columns: 1fr; padding-bottom: 10px; border-bottom: 1px solid var(--kk-line); }
+  .trip-product-profile.kk-profile span.kk-profile__name { display: none; }
+  .kk-profile .kk-profile__trigger { padding-right: 8px; }
+  .kk-booking__price .kk-muted { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kk-spinner { animation-duration: 2.4s; }
+  .kk-button, .kk-header-login { transition: none; }
 }

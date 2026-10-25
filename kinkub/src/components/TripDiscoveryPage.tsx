@@ -1,8 +1,7 @@
-import { useState, type FormEvent, type MouseEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { destinations } from "../content";
 import TripDiscovery from "./TripDiscovery";
-
-type Props = { onHome: () => void };
+import { ProductHeader } from "./ui";
 
 const heroScenes = [
   { key: "left", image: "/images/bangkok-golden.webp", english: "BANGKOK", name: "กรุงเทพฯ", note: "เมืองเก่า · วัฒนธรรม" },
@@ -10,18 +9,13 @@ const heroScenes = [
   { key: "right", image: "/images/phuket-beach.webp", english: "PHUKET", name: "ภูเก็ต", note: "ทะเล · slow travel" },
 ];
 
-export default function TripDiscoveryPage({ onHome }: Props) {
+export default function TripDiscoveryPage() {
   const [destination, setDestination] = useState(() => {
     const requestedId = new URLSearchParams(window.location.search).get("destination");
     return destinations.find((place) => place.id === requestedId)?.name ?? "เชียงใหม่";
   });
   const [date, setDate] = useState("");
   const [partySize, setPartySize] = useState("1");
-
-  const returnHome = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    onHome();
-  };
 
   const searchTrips = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,26 +25,14 @@ export default function TripDiscoveryPage({ onHome }: Props) {
   return (
     <div className="trip-product-page">
       <a className="skip-link" href="#trip-discovery">ข้ามไปยังรายการทริป</a>
-      <header className="trip-product-header">
-        <a className="trip-product-brand" href="/" onClick={returnHome} aria-label="กินกับเว้ย KinKub กลับหน้าแรก">
-          <span className="trip-product-brand__symbol" aria-hidden="true">↗</span>
-          <span className="trip-product-brand__copy">กินกับเว้ย<small>KinKub</small></span>
-        </a>
-        <nav className="trip-product-nav" aria-label="เมนูสมาชิก">
-          <a href="/" onClick={returnHome}>หน้าแรก</a>
-          <a className="is-current" href="#trip-discovery">ค้นหาทริป</a>
-          <button type="button" onClick={() => document.getElementById("trip-discovery")?.scrollIntoView({ behavior: "smooth" })}>แพลนของฉัน</button>
-          <button type="button" onClick={() => document.getElementById("trip-discovery")?.scrollIntoView({ behavior: "smooth" })}>ข้อความ</button>
-        </nav>
-        <div className="trip-product-profile"><span>น</span> นลิน <i aria-hidden="true">⌄</i></div>
-      </header>
+      <ProductHeader current="trips" />
 
       <main className="trip-discovery-main">
         <section className="trip-hero-collage" aria-label="บรรยากาศจุดหมายปลายทาง">
           {heroScenes.map((scene) => (
             <article className={`trip-hero-scene trip-hero-scene--${scene.key}`} key={scene.key} style={{ backgroundImage: `url(${scene.image})` }}>
               <div className="trip-hero-scene__copy"><span>{scene.english}</span><strong>{scene.name}</strong>{scene.key === "main" ? <small>{scene.note}</small> : null}</div>
-              {scene.key === "main" ? <span className="trip-hero-tag">4 ทริปกำลังเปิดรับ</span> : null}
+              {scene.key === "main" ? <span className="trip-hero-tag">ทริปท้องถิ่นกำลังเปิดรับ</span> : null}
             </article>
           ))}
           <div className="trip-hero-dots" aria-hidden="true"><i /><i /><i /></div>

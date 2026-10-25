@@ -100,21 +100,6 @@ export default function CinematicIntro() {
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
-    if (reducedMotion) {
-      if (wrapper) {
-        [
-          "--progress",
-          "--title-opacity",
-          "--title-scale",
-          "--title-shift",
-          "--chrome-opacity",
-          "--center-opacity",
-          "--backdrop-opacity",
-        ].forEach((property) => wrapper.style.removeProperty(property));
-      }
-      return;
-    }
-
     const stage = stageRef.current;
     if (!wrapper || !stage) return;
 
@@ -132,7 +117,9 @@ export default function CinematicIntro() {
 
       // Zoom-through: the masked title grows exponentially so scrolling
       // pushes the camera through the letters, like the reference clip.
-      const zoom = Math.pow(9, progress);
+      // In reduced-motion mode, keep the user-controlled zoom but make it
+      // gentler. Autoplay remains disabled below.
+      const zoom = Math.pow(reducedMotion ? 4 : 9, progress);
 
       wrapper.style.setProperty("--progress", progress.toFixed(4));
       wrapper.style.setProperty("--title-scale", zoom.toFixed(3));
@@ -275,7 +262,7 @@ export default function CinematicIntro() {
   return (
     <section
       ref={wrapperRef}
-      className={`cinema${reducedMotion ? " cinema--static" : ""}`}
+      className={`cinema${reducedMotion ? " cinema--reduced" : ""}`}
       aria-label="บทนำวิดีโอ กินกับ"
     >
       <div ref={stageRef} className="cinema__stage">
