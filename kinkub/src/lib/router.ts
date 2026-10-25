@@ -1,8 +1,25 @@
 // Tiny history router shared by every page. App listens for popstate.
+const AUTH_NEXT_KEY = "kinkub.auth.next";
+
 export function navigate(path: string) {
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/** Preserve the same-site destination if the OAuth provider drops callback query parameters. */
+export function rememberAuthNext(value: string) {
+  window.sessionStorage.setItem(AUTH_NEXT_KEY, safeNext(value));
+}
+
+export function takeRememberedAuthNext() {
+  const value = window.sessionStorage.getItem(AUTH_NEXT_KEY);
+  window.sessionStorage.removeItem(AUTH_NEXT_KEY);
+  return value ? safeNext(value) : null;
+}
+
+export function clearRememberedAuthNext() {
+  window.sessionStorage.removeItem(AUTH_NEXT_KEY);
 }
 
 /** Accept only same-site relative paths, so ?next= can never redirect off-site. */

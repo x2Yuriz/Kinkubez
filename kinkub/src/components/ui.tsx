@@ -106,7 +106,7 @@ export function ProductHeader({ current }: { current: "trips" | "my-trips" | "ac
     <header className="trip-product-header">
       <Link to="/" className="trip-product-brand">
         <span className="trip-product-brand__symbol" aria-hidden="true">↗</span>
-        <span className="trip-product-brand__copy">กินกับเว้ย<small>KinKub</small></span>
+        <span className="trip-product-brand__copy">กินกับ<small>KinKub</small></span>
       </Link>
       <nav className="trip-product-nav" aria-label="เมนูสมาชิก">
         <Link to="/">หน้าแรก</Link>

@@ -1,18 +1,16 @@
-import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
-import L from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer, ZoomControl, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { addFavorite, myFavoriteIds, removeFavorite, searchTrips, tripRatings, type TripRating, type TripRow, type TripType } from "../lib/api";
 import { currentPath, navigate } from "../lib/router";
 import { isSupabaseConfigured } from "../lib/supabase";
 import TripDetail from "./TripDetail";
+import TripMap, { type MapTrip, type TripMapHandle } from "./TripMap";
 
 type RefineFilter = "all" | "verified" | "budget";
 type Trip = TripRow & { host: string; hostInitial: string; date: string; dateValue: string; seatsLeft: number; verified: boolean; image: string };
 type PinnedTrip = Trip & { lat: number; lon: number };
 
-type Props = { destination: string; date: string; partySize: number };
+type Props = { province: string; date: string; partySize: number };
 
 const FALLBACK_IMAGE = "/images/chiangmai-temple.webp";
 
@@ -25,8 +23,8 @@ const sampleRows: TripRow[] = ([
   ["wu-lai-food", "buddy", "ตะลุยของอร่อยย่านวัวลาย", "มายด์", false, "2026-10-28T17:30:00+07:00", "วัวลาย", 600, 4, 2, "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=85", 18.7851, 99.0014],
   ["mae-rim", "guide", "แม่ริมวันเดียว · น้ำตกและสวนดอกไม้", "อ้อม · ไกด์ธรรมชาติ", true, "2026-10-29T07:00:00+07:00", "แม่ริม", 1950, 10, 5, "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=85", 18.9165, 98.9417],
 ] satisfies Sample[]).map(([id, type, title, host, approved, startsAt, area, price, capacity, taken, image, lat, lon]) => ({
-  id: `sample-${id}`, organizer_id: "", type, title, description: "ทริปตัวอย่างสำหรับดูหน้าตาระบบ ยังจองไม่ได้", destination: "เชียงใหม่", area,
-  starts_at: startsAt, ends_at: null, price_thb: price, capacity, seats_taken: taken, image_url: image, lat, lon,
+  id: `sample-${id}`, organizer_id: "", type, title, description: "ทริปตัวอย่างสำหรับดูหน้าตาระบบ ยังจองไม่ได้", destination: "เชียงใหม่", province: "เชียงใหม่", area,
+  meeting_point_url: null, starts_at: startsAt, ends_at: null, price_thb: price, capacity, seats_taken: taken, image_url: image, lat, lon,
   status: "published", is_sample: true, created_at: startsAt,
   organizer: { id: "", display_name: host, avatar_url: null, role: type, provider_status: approved ? "approved" : "pending", service_area: "เชียงใหม่" },
 }));
@@ -47,42 +45,10 @@ function toTrip(row: TripRow): Trip {
   };
 }
 
+const price = (trip: Trip) => `฿${trip.price_thb.toLocaleString("th-TH")}`;
 const hasPin = (trip: Trip): trip is PinnedTrip => trip.lat != null && trip.lon != null;
 
-const cityCenters: Record<string, [number, number]> = {
-  "เชียงใหม่": [18.7883, 98.9853],
-  "ภูเก็ต": [7.9519, 98.3381],
-  "กระบี่": [8.0863, 98.9063],
-  "กรุงเทพฯ": [13.7563, 100.5018],
-};
-
-function MapViewport({
-  selected,
-  destination,
-  mapRef,
-  visibleTrips,
-}: {
-  selected: Trip | undefined;
-  destination: string;
-  mapRef: MutableRefObject<L.Map | null>;
-  visibleTrips: PinnedTrip[];
-}) {
-  const map = useMap();
-  useEffect(() => {
-    mapRef.current = map;
-    return () => { mapRef.current = null; };
-  }, [map, mapRef]);
-  useEffect(() => {
-    if (selected && hasPin(selected)) map.flyTo([selected.lat, selected.lon], 14, { duration: 0.45 });
-    else if (visibleTrips.length) {
-      const bounds = L.latLngBounds(visibleTrips.map((trip) => L.latLng(trip.lat, trip.lon)));
-      map.fitBounds(bounds, { padding: [58, 62], maxZoom: 12 });
-    } else map.setView(cityCenters[destination] ?? cityCenters["เชียงใหม่"], 12);
-  }, [destination, map, selected, visibleTrips]);
-  return null;
-}
-
-export default function TripDiscovery({ destination, date, partySize }: Props) {
+export default function TripDiscovery({ province, date, partySize }: Props) {
   const { session } = useAuth();
   const [type, setType] = useState<TripType | "all">("all");
   const [refine, setRefine] = useState<RefineFilter>("all");
@@ -94,7 +60,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
   const [loadError, setLoadError] = useState("");
   const [detail, setDetail] = useState<Trip | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<TripMapHandle>(null);
   const noticeTimer = useRef(0);
 
   // Live search; RLS only exposes published trips to the public.
@@ -105,7 +71,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
     setLoadError("");
     const from = date ? new Date(`${date}T00:00:00+07:00`) : null;
     searchTrips({
-      destination,
+      province,
       type: type === "all" ? undefined : type,
       minSeats: partySize,
       maxPrice: refine === "budget" ? 2000 : undefined,
@@ -122,7 +88,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
       setRows(sampleRows);
     });
     return () => { active = false; };
-  }, [date, destination, partySize, refine, type, reloadKey]);
+  }, [date, province, partySize, refine, type, reloadKey]);
 
   useEffect(() => {
     if (!session) { setSavedIds([]); return; }
@@ -135,14 +101,18 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
   const visibleTrips = useMemo(() => (rows ?? []).map(toTrip).filter((trip) =>
     // Live rows are filtered by the query; samples are filtered here.
     (!trip.is_sample || rows !== sampleRows || (
-      trip.destination === destination &&
+      trip.province === province &&
       (type === "all" || trip.type === type) &&
       (refine !== "budget" || trip.price_thb <= 2000) &&
       (!date || trip.dateValue === date) &&
       trip.seatsLeft >= partySize)) &&
     (refine !== "verified" || trip.verified),
-  ), [date, destination, partySize, refine, rows, type]);
+  ), [date, province, partySize, refine, rows, type]);
   const pinnedTrips = useMemo(() => visibleTrips.filter(hasPin), [visibleTrips]);
+  const mapTrips = useMemo<MapTrip[]>(() => pinnedTrips.map((trip) => ({
+    id: trip.id, title: trip.title, lat: trip.lat, lon: trip.lon, price: price(trip), buddy: trip.type === "buddy",
+    detail: `${price(trip)} / คน · ${trip.type === "buddy" ? "Buddy กลุ่มเล็ก" : "ทริปไกด์"}`,
+  })), [pinnedTrips]);
   const selected = visibleTrips.find((trip) => trip.id === selectedId);
   const filtered = type !== "all" || refine !== "all" || !!date;
 
@@ -182,7 +152,6 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
   const createTrip = () => navigate(session ? "/my-trips" : "/login?next=/my-trips");
   const availability = (trip: Trip) =>
     trip.seatsLeft <= 0 ? "เต็มแล้ว" : trip.type === "buddy" ? `รับเพิ่ม ${trip.seatsLeft} ที่` : `เหลือ ${trip.seatsLeft} ที่`;
-  const price = (trip: Trip) => `฿${trip.price_thb.toLocaleString("th-TH")}`;
 
   return (
     <section className="trip-finder" id="trip-discovery" aria-labelledby="trip-finder-title">
@@ -190,11 +159,11 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
         <div className="section-heading trip-finder__heading">
           <div>
             <p className="eyebrow"><span className="eyebrow__line" /> FIND YOUR PEOPLE</p>
-            <h2 id="trip-finder-title">หาเพื่อนร่วมทางใน{destination}</h2>
+            <h2 id="trip-finder-title">หาเพื่อนร่วมทางในจังหวัด{province}</h2>
             <p>เลือกทริปที่ใช่ แล้วเริ่มวางแผนไปด้วยกัน</p>
           </div>
           <div className="trip-finder__heading-actions">
-            <button className="trip-finder__change-place" type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>เปลี่ยนจุดหมาย <span>↗</span></button>
+            <button className="trip-finder__change-place" type="button" onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); document.getElementById("province-search")?.focus({ preventScroll: true }); }}>เปลี่ยนจังหวัด <span aria-hidden="true">↗</span></button>
             <button className="trip-finder__create" type="button" onClick={createTrip}>＋ สร้างทริป</button>
           </div>
         </div>
@@ -229,7 +198,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
         <div className="trip-finder__layout">
           <div className="trip-finder__results">
             <div className="trip-finder__results-head">
-              <strong>ทริปที่กำลังเปิดรับ <span>· {rows ? `${visibleTrips.length} รายการ` : "กำลังโหลด…"}</span></strong>
+              <strong>ทริปที่เปิดรับใน{province} <span>· {rows ? `${visibleTrips.length} รายการ` : "กำลังโหลด…"}</span></strong>
               {usingSamples ? <span className="kk-chip">ข้อมูลตัวอย่าง · จองไม่ได้</span> : <span>เรียงตามวันเดินทาง</span>}
             </div>
             {loadError ? (
@@ -241,7 +210,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
             {!rows ? (
               <div className="trip-finder__empty" role="status" aria-busy="true">
                 <span className="kk-spinner" aria-hidden="true" />
-                <strong>กำลังค้นหาทริป…</strong>
+                <strong>กำลังค้นหาทริปใน{province}…</strong>
               </div>
             ) : visibleTrips.length ? (
               <div className="trip-finder__grid">
@@ -257,7 +226,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
                         <span className="trip-card__body">
                           <span className="trip-card__host"><span className="trip-card__avatar">{trip.hostInitial}</span>{trip.host}<span className="trip-card__verified">{trip.verified ? "✓ ยืนยันแล้ว" : "ยืนยันบางส่วน"}</span></span>
                           <strong className="trip-card__title">{trip.title}</strong>
-                          <span className="trip-card__details">{trip.date}　·　{trip.area || trip.destination}{rating ? `　·　★ ${Number(rating.rating).toFixed(1)} (${rating.review_count})` : ""}</span>
+                          <span className="trip-card__details">{trip.date}　·　{trip.area ? `${trip.area}, ` : ""}{trip.province ?? trip.destination}{rating ? `　·　★ ${Number(rating.rating).toFixed(1)} (${rating.review_count})` : ""}</span>
                           <span className="trip-card__bottom"><span className="trip-card__price">{price(trip)}<small> / คน</small></span><span className="trip-card__availability">{availability(trip)}</span></span>
                         </span>
                       </button>
@@ -268,9 +237,11 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
               </div>
             ) : (
               <div className="trip-finder__empty" role="status">
-                <strong>{filtered ? "ยังไม่เจอทริปตามตัวกรองนี้" : `ยังไม่มีทริปใน${destination}`}</strong>
-                <span>{filtered ? "ลองเปลี่ยนวัน จำนวนคน หรือล้างตัวกรอง" : "เปลี่ยนจุดหมาย หรือสร้างทริปแรกของพื้นที่นี้"}</span>
-                <button type="button" onClick={() => { setType("all"); setRefine("all"); }}>ดูทริปทั้งหมด</button>
+                <strong>{filtered ? `ยังไม่เจอทริปใน${province}ตามตัวกรองนี้` : `ยังไม่มีทริปในจังหวัด${province}`}</strong>
+                <span>{filtered ? "ลองเปลี่ยนวัน จำนวนคน หรือล้างตัวกรอง" : "ลองเลือกจังหวัดใกล้เคียง หรือเป็นคนแรกที่สร้างทริปในจังหวัดนี้"}</span>
+                {filtered
+                  ? <button type="button" onClick={() => { setType("all"); setRefine("all"); }}>ล้างตัวกรอง</button>
+                  : <button type="button" onClick={createTrip}>＋ สร้างทริปใน{province}</button>}
               </div>
             )}
             {selected ? (
@@ -280,7 +251,7 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
                 <strong className="trip-finder__selection-price">{price(selected)} / คน</strong>
                 <span className="trip-finder__selection-actions">
                   {hasPin(selected) ? (
-                    <button type="button" className="is-quiet" onClick={() => { mapRef.current?.flyTo([selected.lat, selected.lon], 14, { duration: .45 }); window.document.querySelector(".trip-finder__map")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>ดูตำแหน่ง</button>
+                    <button type="button" className="is-quiet" onClick={() => { mapRef.current?.showTrip(selected.lat, selected.lon); window.document.querySelector(".trip-finder__map")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>ดูตำแหน่ง</button>
                   ) : null}
                   <button type="button" onClick={() => openDetail(selected)}>{usingSamples ? "รายละเอียด" : "รายละเอียด · จอง"} <span>→</span></button>
                 </span>
@@ -289,29 +260,17 @@ export default function TripDiscovery({ destination, date, partySize }: Props) {
             <div className="trip-finder__bottom-note"><span><strong>ไม่เจอทริปที่ใช่?</strong> สร้างแพลน แล้วชวนคนมาออกเดินทางด้วยกัน</span><button type="button" onClick={createTrip}>＋ สร้างทริป</button></div>
           </div>
 
-          <div className="trip-finder__map" aria-label={`แผนที่ทริปใน${destination}`}>
+          <div className="trip-finder__map" role="region" aria-label={`แผนที่ทริปในจังหวัด${province}`}>
             <div className="trip-finder__map-heading">
-              <span className="trip-finder__map-label"><strong>{destination}</strong> · {pinnedTrips.length} ทริปในพื้นที่</span>
-              <button type="button" onClick={() => mapRef.current?.setView(cityCenters[destination] ?? cityCenters["เชียงใหม่"], 12)}>⌖　ค้นหาบริเวณนี้</button>
+              <span className="trip-finder__map-label"><strong>{province}</strong> · {pinnedTrips.length} ทริปมีหมุด</span>
+              <button type="button" onClick={() => mapRef.current?.recenter()}>⌖　กลับไปที่{province}</button>
             </div>
-            <MapContainer key={destination} center={cityCenters[destination] ?? cityCenters["เชียงใหม่"]} zoom={12} scrollWheelZoom={false} zoomControl={false} className="trip-finder__leaflet-map">
-              <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <ZoomControl position="bottomright" />
-              <MapViewport selected={selected} destination={destination} mapRef={mapRef} visibleTrips={pinnedTrips} />
-              {pinnedTrips.map((trip) => {
-                const icon = L.divIcon({
-                  className: "trip-price-pin-wrap",
-                  html: `<span class="trip-price-pin ${trip.type === "buddy" ? "is-buddy" : ""} ${selectedId === trip.id ? "is-active" : ""}">${price(trip)}</span>`,
-                  iconSize: [94, 38],
-                  iconAnchor: [47, 36],
-                });
-                return (
-                  <Marker key={trip.id} position={[trip.lat, trip.lon]} icon={icon} title={`${trip.title} · ${price(trip)}`} eventHandlers={{ click: () => setSelectedId(trip.id) }}>
-                    <Popup><strong>{trip.title}</strong><br />{price(trip)} / คน · {trip.type === "buddy" ? "Buddy กลุ่มเล็ก" : "ทริปไกด์"}</Popup>
-                  </Marker>
-                );
-              })}
-            </MapContainer>
+            {rows && !pinnedTrips.length ? (
+              <p className="trip-finder__map-note" role="status">
+                {visibleTrips.length ? `ทริปใน${province}ยังไม่มีพิกัด ดูจุดนัดได้จากปุ่ม Google Maps ในรายละเอียดทริป` : `ยังไม่มีหมุดทริปใน${province}`}
+              </p>
+            ) : null}
+            <TripMap ref={mapRef} province={province} trips={mapTrips} selectedId={selectedId} onSelect={setSelectedId} />
             <div className="trip-finder__map-legend"><span><i />ทริปไกด์</span><span><i className="is-buddy" />Buddy กลุ่มเล็ก</span></div>
           </div>
         </div>

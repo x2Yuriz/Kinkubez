@@ -1,21 +1,31 @@
-import { useState, type FormEvent } from "react";
-import { destinations } from "../content";
+import { useEffect, useState, type FormEvent } from "react";
+import { DEFAULT_PROVINCE, toProvince } from "../lib/provinces";
+import ProvinceCombobox from "./ProvinceCombobox";
 import TripDiscovery from "./TripDiscovery";
 import { ProductHeader } from "./ui";
 
 const heroScenes = [
-  { key: "left", image: "/images/bangkok-golden.webp", english: "BANGKOK", name: "กรุงเทพฯ", note: "เมืองเก่า · วัฒนธรรม" },
+  { key: "left", image: "/images/bangkok-golden.webp", english: "BANGKOK", name: "กรุงเทพมหานคร", note: "เมืองเก่า · วัฒนธรรม" },
   { key: "main", image: "/images/chiangmai-temple.webp", english: "CHIANG MAI", name: "เชียงใหม่", note: "เมืองเก่า ธรรมชาติ และผู้คนที่คุณยังไม่เคยเจอ" },
   { key: "right", image: "/images/phuket-beach.webp", english: "PHUKET", name: "ภูเก็ต", note: "ทะเล · slow travel" },
 ];
 
 export default function TripDiscoveryPage() {
-  const [destination, setDestination] = useState(() => {
-    const requestedId = new URLSearchParams(window.location.search).get("destination");
-    return destinations.find((place) => place.id === requestedId)?.name ?? "เชียงใหม่";
+  // ?province=<Thai name>; older ?destination=<id> links from the homepage still resolve.
+  const [province, setProvince] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return toProvince(params.get("province")) ?? toProvince(params.get("destination")) ?? DEFAULT_PROVINCE;
   });
   const [date, setDate] = useState("");
   const [partySize, setPartySize] = useState("1");
+
+  // Keep the province in the URL so a search can be shared or reloaded.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("destination");
+    url.searchParams.set("province", province);
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [province]);
 
   const searchTrips = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,17 +49,15 @@ export default function TripDiscoveryPage() {
         </section>
 
         <form className="trip-search-panel" onSubmit={searchTrips}>
-          <label className="trip-search-field trip-search-field--destination"><span>จุดหมายที่อยากไป</span>
-            <select value={destination} onChange={(event) => setDestination(event.target.value)} aria-label="เลือกจุดหมาย">
-              {destinations.map((place) => <option key={place.id} value={place.name}>{place.name}</option>)}
-            </select>
-          </label>
+          <div className="trip-search-field trip-search-field--destination"><label htmlFor="province-search">จังหวัดที่อยากไป</label>
+            <ProvinceCombobox value={province} onChange={(next) => setProvince(toProvince(next) ?? DEFAULT_PROVINCE)} />
+          </div>
           <label className="trip-search-field"><span>วันเดินทาง</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} aria-label="เลือกวันเดินทาง" /></label>
           <label className="trip-search-field"><span>จำนวนคน</span><select value={partySize} onChange={(event) => setPartySize(event.target.value)} aria-label="เลือกจำนวนคน"><option value="1">1 คน</option><option value="2">2 คน</option><option value="3">3 คน</option><option value="4">4 คน</option></select></label>
           <button className="trip-search-submit" type="submit">ค้นหาทริป <span aria-hidden="true">→</span></button>
         </form>
 
-        <TripDiscovery destination={destination} date={date} partySize={Number(partySize)} />
+        <TripDiscovery province={province} date={date} partySize={Number(partySize)} />
       </main>
     </div>
   );

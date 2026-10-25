@@ -79,9 +79,19 @@ export default function TripDetail({ trip, partySize, onClose, onBooked }: Props
         <p className="kk-kicker">{trip.type === "buddy" ? "Buddy · กลุ่มเล็ก" : "ไกด์ท้องถิ่น"}{trip.is_sample ? " · ข้อมูลตัวอย่าง" : ""}</p>
         <h2 id="trip-detail-title">{trip.title}</h2>
         <p className="kk-muted">
-          {trip.destination}{trip.area ? ` · ${trip.area}` : ""} · {formatDateTime(trip.starts_at)} · โดย {trip.organizer?.display_name || "ผู้จัดทริป"}
+          จังหวัด{trip.province ?? trip.destination} · {formatDateTime(trip.starts_at)} · โดย {trip.organizer?.display_name || "ผู้จัดทริป"}
         </p>
         {trip.description ? <p className="kk-prose">{trip.description}</p> : null}
+
+        <h3>จุดนัดพบ</h3>
+        <div className="kk-meeting-point">
+          <p>{trip.area || "ผู้จัดยังไม่ได้ระบุชื่อจุดนัด"}{trip.lat != null && trip.lon != null ? <span className="kk-muted"> · มีหมุดบนแผนที่</span> : null}</p>
+          {trip.meeting_point_url ? (
+            <a className="kk-button kk-button--ghost" href={trip.meeting_point_url} target="_blank" rel="noopener noreferrer">
+              เปิดใน Google Maps <span aria-hidden="true">↗</span><span className="kk-visually-hidden"> (เปิดแท็บใหม่)</span>
+            </a>
+          ) : <p className="kk-muted">ผู้จัดยังไม่ได้ใส่ลิงก์ Google Maps สอบถามผู้จัดหลังส่งคำขอจองได้</p>}
+        </div>
 
         <h3>แผนการเดินทาง</h3>
         {loadError ? <StateMessage tone="error" title="โหลดรายละเอียดไม่ได้">{loadError}</StateMessage>

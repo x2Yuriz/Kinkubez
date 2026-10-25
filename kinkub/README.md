@@ -59,7 +59,7 @@ The app works without a backend: it shows labelled sample trips and cannot take 
 
 1. **Create a project** at supabase.com.
 2. **Run the migrations**, in order, in the SQL editor (or `supabase db push`):
-   `supabase/migrations/20261025000100_core.sql`, then `20261025000200_storage.sql`, then `20261025000300_verification.sql`.
+   `supabase/migrations/20261025000100_core.sql`, then `20261025000200_storage.sql`, then `20261025000300_verification.sql`, then `20261025000400_trip_province.sql` (77 provinces + Google Maps meeting-point links; coordinates are parsed in the database from links that contain them, short `maps.app.goo.gl` links are saved without a map pin).
    All are safe to rerun. `supabase/seed.sql` contains **sample data only** (every row has `is_sample = true`). Use it locally; do not load it in production.
 3. **Set up Google OAuth**
    - In Google Cloud Console, create an OAuth client of type *Web application*.
@@ -67,7 +67,10 @@ The app works without a backend: it shows labelled sample trips and cannot take 
    - In Supabase → Authentication → Providers → Google, paste the client ID and secret. The secret stays in Supabase, never in this repo.
 4. **Set the auth URLs.** In Supabase → Authentication → URL Configuration:
    - Site URL: your production origin.
-   - Redirect URLs: `http://localhost:5173/auth/callback` and `https://<your-domain>/auth/callback`.
+   - Redirect URLs: `http://localhost:5173/auth/callback`, `http://localhost:5173/auth/reset`, `https://<your-domain>/auth/callback` and `https://<your-domain>/auth/reset`.
+   - Email + password: in Authentication → Providers → Email, keep the provider on, turn on **Confirm email**, and set the minimum password length to 8 (the form checks 8 too).
+   - The built-in Supabase mailer is heavily rate-limited and meant for testing. For production, set custom SMTP under Authentication → Emails → SMTP Settings.
+   - Confirmation and reset links use PKCE, so they must be opened in the same browser that asked for them. Otherwise `/auth/callback` or `/auth/reset` shows a Thai error with a retry button.
 5. **Add env vars.** Copy `.env.example` to `.env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Only the anon key goes here; it is public by design and protected by RLS. Never put the service-role key in any `VITE_*` variable.
 6. **Create the first admin.** Sign in once, then run this in the SQL editor as the project owner:
    ```sql
@@ -84,6 +87,20 @@ Roles:
 | `traveler` | Book trips, favourite trips, review completed trips |
 | `buddy` / `guide` | Everything a traveler can, plus create trips (approval needed to publish) |
 | `admin` | Manage users, roles, trips, bookings, reviews, reports and packages; view audit logs |
+
+### Google Maps (trip map)
+
+The map on `/trips` uses the Google Maps JavaScript API. Without a key, the map area shows a Thai setup message and the trip list keeps working.
+
+1. In Google Cloud Console, pick or create a project and open **APIs & Services → Library**. Enable **Maps JavaScript API**.
+2. **Billing:** Google requires a billing account on the project before Maps loads, even within the free monthly usage. Attach one under **Billing**. Optionally, set a budget alert.
+3. **Create the key** in **APIs & Services → Credentials → Create credentials → API key**.
+4. **Restrict the key.** This key ships to the browser, so the restriction is what protects it.
+   - Under *Application restrictions*, choose **Websites** and add `https://<your-domain>/*`, plus `https://*.vercel.app/*` if you use preview deploys. For local dev, add `http://localhost:5173/*` and `http://127.0.0.1:5173/*`.
+   - Under *API restrictions*, choose **Restrict key** and select only **Maps JavaScript API**.
+5. **Add the key.** Put `VITE_GOOGLE_MAPS_API_KEY=<key>` in `.env.local` and in Vercel → Project → Settings → Environment Variables. Then restart `npm run dev` or redeploy, because Vite reads env vars at build time. Never commit the key.
+
+If the key is wrong, the API is off, billing is missing or the domain isn't allowed, the map shows "Google Maps ไม่อนุญาตให้ใช้คีย์นี้" instead of a blank box.
 
 ### Identity verification
 

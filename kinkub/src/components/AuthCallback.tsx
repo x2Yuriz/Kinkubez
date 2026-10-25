@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth";
-import { navigate, safeNext } from "../lib/router";
+import { navigate, safeNext, takeRememberedAuthNext } from "../lib/router";
 import { StateMessage } from "./ui";
 
 /** /auth/callback — supabase-js exchanges the PKCE code on load; we wait for the session then return to ?next=. */
@@ -9,9 +9,12 @@ export function AuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const errorCode = params.get("error");
   const providerError = errorCode === "access_denied" ? "คุณยกเลิกการเข้าสู่ระบบ หรือไม่ได้อนุญาตให้ KinKub เข้าถึงบัญชี Google"
-    : errorCode ? "Google หรือ Supabase ปฏิเสธคำขอ ตรวจการตั้งค่า Redirect URL แล้วลองใหม่" : null;
+    : errorCode ? "Supabase แลกรหัสจาก Google ไม่สำเร็จ ตรวจว่า Google Client ID และ Client Secret เป็นคู่จาก OAuth client เดียวกัน และ Redirect URL ถูกต้อง แล้วลองใหม่" : null;
   const errorDetail = params.get("error_description");
-  const next = safeNext(params.get("next"));
+  const [next] = useState(() => {
+    const remembered = takeRememberedAuthNext();
+    return safeNext(params.get("next") ?? remembered);
+  });
   const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {

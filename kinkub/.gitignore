@@ -12,3 +12,6 @@ dist/
 !.env.example
 supabase/.temp/
 supabase/.branches/
+
+.vercel
+.env*

@@ -42,7 +42,7 @@ export const destinations: Destination[] = [
   },
   {
     id: "bangkok",
-    name: "กรุงเทพฯ",
+    name: "กรุงเทพมหานคร",
     english: "BANGKOK",
     region: "ภาคกลาง",
     blurb: "พระนครเก่า ตลาดกลางคืน และรสชาติที่ไม่เคยหลับ",
@@ -89,11 +89,11 @@ export const showcaseSlides: ShowcaseSlide[] = [
   },
   {
     id: "bangkok",
-    name: "กรุงเทพฯ",
+    name: "กรุงเทพมหานคร",
     english: "BANGKOK",
     note: "พระนคร · ภาคกลาง",
     image: "/images/bangkok-golden.webp",
-    alt: "ภาพมุมสูงของพระบรมมหาราชวังยามค่ำในกรุงเทพฯ",
+    alt: "ภาพมุมสูงของพระบรมมหาราชวังยามค่ำในกรุงเทพมหานคร",
     position: "50% 58%",
     backgroundTint: "#d7a56d",
     backgroundImage: "/images/bangkok-golden.webp",
@@ -135,7 +135,7 @@ export const packagePlans: PackagePlan[] = [
   {
     id: "bangkok-plan",
     tag: "เมือง",
-    title: "กรุงเทพฯ · พระนคร 2 วัน 1 คืน",
+    title: "กรุงเทพมหานคร · พระนคร 2 วัน 1 คืน",
     english: "OLD TOWN EDITION",
     meta: "โรงแรมกลางเมือง · อาหารเช้า · รถรับส่ง",
     price: "3,900",

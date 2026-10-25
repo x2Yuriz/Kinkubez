@@ -8,17 +8,20 @@ import SiteHeader from "./components/SiteHeader";
 import TripDiscoveryPage from "./components/TripDiscoveryPage";
 import TripLogin from "./components/TripLogin";
 import { AuthCallback } from "./components/AuthCallback";
+import { ResetPassword } from "./components/ResetPassword";
 import { AccountPage } from "./components/AccountPage";
 import { MyTripsPage } from "./components/MyTripsPage";
 import { AdminPage } from "./components/AdminPage";
-import { navigate } from "./lib/router";
+import { navigate, takeRememberedAuthNext } from "./lib/router";
+import { useAuth } from "./lib/auth";
 
-type Route = "home" | "login" | "trips" | "callback" | "account" | "my-trips" | "admin";
+type Route = "home" | "login" | "trips" | "callback" | "reset" | "account" | "my-trips" | "admin";
 
 function routeFromPath(pathname: string): Route {
   if (pathname.startsWith("/trips")) return "trips";
   if (pathname.startsWith("/login")) return "login";
   if (pathname.startsWith("/auth/callback")) return "callback";
+  if (pathname.startsWith("/auth/reset")) return "reset";
   if (pathname.startsWith("/account")) return "account";
   if (pathname.startsWith("/my-trips")) return "my-trips";
   if (pathname.startsWith("/admin")) return "admin";
@@ -26,6 +29,7 @@ function routeFromPath(pathname: string): Route {
 }
 
 export default function App() {
+  const { session, loading } = useAuth();
   const [query, setQuery] = useState("");
   const [activeScene, setActiveScene] = useState(showcaseSlides[0]);
   const [route, setRoute] = useState<Route>(() => routeFromPath(window.location.pathname));
@@ -36,10 +40,19 @@ export default function App() {
     return () => window.removeEventListener("popstate", syncRoute);
   }, []);
 
+  // Supabase may fall back to Site URL if the production callback URL is not allow-listed.
+  // If that happens, complete the pending same-tab OAuth return after the session is restored.
+  useEffect(() => {
+    if (route !== "home" || loading || !session) return;
+    const next = takeRememberedAuthNext();
+    if (next) navigate(next);
+  }, [route, loading, session]);
+
   const changeScene = (scene: ShowcaseSlide) => setActiveScene(scene);
 
   if (route === "login") return <TripLogin onHome={() => navigate("/")} />;
   if (route === "callback") return <AuthCallback />;
+  if (route === "reset") return <ResetPassword />;
   if (route === "account") return <AccountPage />;
   if (route === "my-trips") return <MyTripsPage />;
   if (route === "admin") return <AdminPage />;

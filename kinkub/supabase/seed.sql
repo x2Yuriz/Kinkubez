@@ -22,23 +22,23 @@ update public.profiles set role = 'guide', provider_status = 'approved', service
 where id in ('00000000-0000-4000-a000-000000000002', '00000000-0000-4000-a000-000000000004');
 
 insert into public.trips (id, organizer_id, type, title, description, destination, area, starts_at,
-  price_thb, capacity, image_url, lat, lon, status, is_sample)
+  price_thb, capacity, image_url, lat, lon, meeting_point_url, status, is_sample)
 values
   ('10000000-0000-4000-a000-000000000001', '00000000-0000-4000-a000-000000000001', 'buddy',
    '[ตัวอย่าง] เดินเล่นเมืองเก่า แวะคาเฟ่ชิล ๆ', 'ข้อมูลตัวอย่างสำหรับทดสอบระบบ', 'เชียงใหม่', 'เมืองเก่า',
-   date_trunc('day', now()) + interval '2 days 10 hours', 850, 3, '/images/chiangmai-temple.webp', 18.7883, 98.9853, 'published', true),
+   date_trunc('day', now()) + interval '2 days 10 hours', 850, 3, '/images/chiangmai-temple.webp', 18.7883, 98.9853, 'https://www.google.com/maps/search/?api=1&query=18.7883,98.9853', 'published', true),
   ('10000000-0000-4000-a000-000000000002', '00000000-0000-4000-a000-000000000002', 'guide',
    '[ตัวอย่าง] ดอยสุเทพ · วัดป่า · วิวเมือง', 'ข้อมูลตัวอย่างสำหรับทดสอบระบบ', 'เชียงใหม่', 'ดอยสุเทพ',
    date_trunc('day', now()) + interval '3 days 8 hours 30 minutes', 1500, 8,
-   'https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=800&q=85', 18.8048, 98.9215, 'published', true),
+   'https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=800&q=85', 18.8048, 98.9215, 'https://www.google.com/maps/search/?api=1&query=18.8048,98.9215', 'published', true),
   ('10000000-0000-4000-a000-000000000003', '00000000-0000-4000-a000-000000000003', 'buddy',
    '[ตัวอย่าง] ตะลุยของอร่อยย่านวัวลาย', 'ข้อมูลตัวอย่างสำหรับทดสอบระบบ', 'เชียงใหม่', 'วัวลาย',
    date_trunc('day', now()) + interval '4 days 17 hours 30 minutes', 600, 3,
-   'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=85', 18.7851, 99.0014, 'published', true),
+   'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=85', 18.7851, 99.0014, 'https://www.google.com/maps/search/?api=1&query=18.7851,99.0014', 'published', true),
   ('10000000-0000-4000-a000-000000000004', '00000000-0000-4000-a000-000000000004', 'guide',
    '[ตัวอย่าง] แม่ริมวันเดียว · น้ำตกและสวนดอกไม้', 'ข้อมูลตัวอย่างสำหรับทดสอบระบบ', 'เชียงใหม่', 'แม่ริม',
    date_trunc('day', now()) + interval '5 days 7 hours', 1950, 10,
-   'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=85', 18.9165, 98.9417, 'published', true)
+   'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=85', 18.9165, 98.9417, 'https://www.google.com/maps/search/?api=1&query=18.9165,98.9417', 'published', true)
 on conflict (id) do nothing;
 
 insert into public.itinerary_items (trip_id, position, time_label, title, details) values

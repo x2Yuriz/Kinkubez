@@ -307,6 +307,57 @@ await test("guide creates draft; draft hidden from others", async () => {
   await denied("update public.trips set status = 'completed' where id = $1", [guideTrip], /หลังจากทริปเริ่ม/);
 });
 
+await test("province: derived from legacy destination, required and validated", async () => {
+  await as(ids.buddy);
+  const [t] = await q("select province, destination from public.trips where id = $1", [buddyTrip]);
+  assert(t.province === "เชียงใหม่" && t.destination === "เชียงใหม่", JSON.stringify(t));
+  const [bkk] = await q(`insert into public.trips (organizer_id, type, title, destination, starts_at, price_thb, capacity)
+    values ($1, 'buddy', 'เดินเยาวราช', 'กรุงเทพฯ', ${future}, 300, 2) returning province, destination`, [ids.buddy]);
+  assert(bkk.province === "กรุงเทพมหานคร" && bkk.destination === "กรุงเทพมหานคร", JSON.stringify(bkk));
+  await denied(`insert into public.trips (organizer_id, type, title, destination, starts_at, price_thb, capacity)
+    values ($1, 'buddy', 'ไม่มีจังหวัด', 'ที่ไหนสักแห่ง', ${future}, 300, 2)`, [ids.buddy], /กรุณาเลือกจังหวัด/);
+  await denied(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity)
+    values ($1, 'buddy', 'จังหวัดปลอม', 'x', 'นาร์เนีย', ${future}, 300, 2)`, [ids.buddy], /ไม่พบจังหวัด/);
+  const [nan] = await q(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity)
+    values ($1, 'buddy', 'ปั่นจักรยานน่าน', 'อะไรก็ได้', 'น่าน', ${future}, 300, 2) returning destination`, [ids.buddy]);
+  assert(nan.destination === "น่าน", nan.destination);
+  await as(ids.traveler);
+  await denied(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity)
+    values ($1, 'buddy', 'ทริป', 'น่าน', 'น่าน', ${future}, 300, 2)`, [ids.traveler], /row-level security/);
+});
+
+await test("maps link: Google only, coordinates parsed server-side, never client-set", async () => {
+  await as(ids.buddy);
+  const insert = (url) => q(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity, meeting_point_url)
+    values ($1, 'buddy', 'ทดสอบจุดนัด', 'เชียงใหม่', 'เชียงใหม่', ${future}, 300, 2, $2) returning id, lat, lon`, [ids.buddy, url]);
+  await denied(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity, meeting_point_url)
+    values ($1, 'buddy', 'ลิงก์ปลอม', 'เชียงใหม่', 'เชียงใหม่', ${future}, 300, 2, 'https://evil.example/maps?q=18.7,98.9')`, [ids.buddy], /meeting_point_url/);
+  await denied(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity, meeting_point_url)
+    values ($1, 'buddy', 'ลิงก์ปลอม', 'เชียงใหม่', 'เชียงใหม่', ${future}, 300, 2, 'http://maps.google.com/?q=18.7,98.9')`, [ids.buddy], /meeting_point_url/);
+  const [place] = await insert("https://www.google.com/maps/place/Tha+Phae+Gate/@18.7877,98.9931,17z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d18.7883!4d98.9853");
+  assert(place.lat === 18.7883 && place.lon === 98.9853, `!3d: ${place.lat},${place.lon}`);
+  const [at] = await insert("https://www.google.com/maps/@18.79,98.98,15z");
+  assert(at.lat === 18.79 && at.lon === 98.98, `@: ${at.lat},${at.lon}`);
+  const [query] = await insert("https://www.google.com/maps/search/?api=1&query=18.8%2C98.95");
+  assert(query.lat === 18.8 && query.lon === 98.95, `query: ${query.lat},${query.lon}`);
+  const [short] = await insert("https://maps.app.goo.gl/AbC123xyz");
+  assert(short.lat === null && short.lon === null, "short link must not get coordinates");
+  const [abroad] = await insert("https://www.google.com/maps/@48.8584,2.2945,17z");
+  assert(abroad.lat === null, "coordinates outside Thailand must be dropped");
+  await q("update public.trips set meeting_point_url = null where id = $1", [place.id]);
+  const [cleared] = await q("select lat, lon from public.trips where id = $1", [place.id]);
+  assert(cleared.lat === null && cleared.lon === null, "clearing the link clears the pin");
+  await denied("update public.trips set lat = 1, lon = 1 where id = $1", [place.id], /permission denied/);
+  await denied(`insert into public.trips (organizer_id, type, title, destination, province, starts_at, price_thb, capacity, lat, lon)
+    values ($1, 'buddy', 'ตั้งพิกัดเอง', 'เชียงใหม่', 'เชียงใหม่', ${future}, 300, 2, 18, 99)`, [ids.buddy], /permission denied/);
+  await as(ids.guide);
+  const [other] = await q("update public.trips set meeting_point_url = 'https://maps.app.goo.gl/x1' where id = $1 returning id", [place.id]).then((r) => r.length ? r : [null]);
+  assert(other === null, "non-owner edited another organizer's trip");
+  await as(null);
+  assert((await q("select name_th from public.provinces")).length === 77, "77 provinces readable by anon");
+  await denied("insert into public.provinces values ('x', 'x', 'north')", [], /permission denied/);
+});
+
 await test("anon reads published trips but cannot book", async () => {
   await as(null);
   assert((await q("select id from public.trips where id = $1", [buddyTrip])).length === 1, "missing trip");

@@ -6,6 +6,8 @@ import {
   updateTrip, uploadImage, type Booking, type BookingHistory, type BookingStatus, type ItineraryItem, type TripInput,
   type TripRow, type TripType,
 } from "../lib/api";
+import { isGoogleMapsUrl, normalizeMapsUrl, parseMapsCoords } from "../lib/maps";
+import { DEFAULT_PROVINCE, PROVINCES, REGION_LABEL, REGIONS, toProvince } from "../lib/provinces";
 import { ProductHeader, RequireAuth, StateMessage, useFlash } from "./ui";
 
 type Flash = ReturnType<typeof useFlash>;
@@ -133,8 +135,8 @@ function TravelerBookings({ userId, flash }: { userId: string; flash: Flash }) {
 // ---------------- Organizer ----------------
 
 const emptyTrip = (type: TripType): TripInput => ({
-  type, title: "", description: "", destination: "เชียงใหม่", area: "", starts_at: "", ends_at: null,
-  price_thb: 1500, capacity: type === "buddy" ? 4 : 10, image_url: null, lat: null, lon: null, status: "draft",
+  type, title: "", description: "", destination: DEFAULT_PROVINCE, province: DEFAULT_PROVINCE, area: "", meeting_point_url: null,
+  starts_at: "", ends_at: null, price_thb: 1500, capacity: type === "buddy" ? 4 : 10, image_url: null, status: "draft",
 });
 
 function ItineraryEditor({ tripId, flash }: { tripId: string; flash: Flash }) {
@@ -179,13 +181,22 @@ function ItineraryEditor({ tripId, flash }: { tripId: string; flash: Flash }) {
 function TripEditor({ userId, trip, allowedTypes, onSaved, onCancel, flash }: {
   userId: string; trip: TripRow | null; allowedTypes: TripType[]; onSaved: () => void; onCancel: () => void; flash: Flash;
 }) {
-  const [form, setForm] = useState<TripInput>(() => (trip ? {
-    type: trip.type, title: trip.title, description: trip.description, destination: trip.destination, area: trip.area,
-    starts_at: trip.starts_at, ends_at: trip.ends_at, price_thb: trip.price_thb, capacity: trip.capacity, image_url: trip.image_url,
-    lat: trip.lat, lon: trip.lon, status: trip.status,
-  } : emptyTrip(allowedTypes[0])));
+  const [form, setForm] = useState<TripInput>(() => {
+    if (!trip) return emptyTrip(allowedTypes[0]);
+    const province = trip.province ?? toProvince(trip.destination) ?? DEFAULT_PROVINCE;
+    return {
+      type: trip.type, title: trip.title, description: trip.description, destination: province, province, area: trip.area,
+      meeting_point_url: trip.meeting_point_url, starts_at: trip.starts_at, ends_at: trip.ends_at, price_thb: trip.price_thb,
+      capacity: trip.capacity, image_url: trip.image_url, status: trip.status,
+    };
+  });
   const [busy, setBusy] = useState(false);
+  const [mapsInput, setMapsInput] = useState(trip?.meeting_point_url ?? "");
   const set = (patch: Partial<TripInput>) => setForm((current) => ({ ...current, ...patch }));
+  // Coordinates are read from the link by the database; this preview uses the same rules.
+  const mapsUrl = mapsInput.trim() ? normalizeMapsUrl(mapsInput) : "";
+  const mapsValid = !mapsUrl || isGoogleMapsUrl(mapsUrl);
+  const mapsCoords = mapsUrl && mapsValid ? parseMapsCoords(mapsUrl) : null;
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
@@ -202,14 +213,19 @@ function TripEditor({ userId, trip, allowedTypes, onSaved, onCancel, flash }: {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (!mapsValid) {
+      document.getElementById("trip-maps-url")?.focus();
+      return;
+    }
+    const payload: TripInput = { ...form, destination: form.province ?? DEFAULT_PROVINCE, meeting_point_url: mapsUrl || null };
     setBusy(true);
     try {
       if (trip) {
-        const { type: _type, ...editable } = form;
+        const { type: _type, ...editable } = payload;
         void _type;
         await updateTrip(trip.id, editable);
       } else {
-        await createTrip(userId, form);
+        await createTrip(userId, payload);
       }
       flash.ok(trip ? "บันทึกทริปแล้ว" : "สร้างทริปแล้ว");
       onSaved();
@@ -234,14 +250,37 @@ function TripEditor({ userId, trip, allowedTypes, onSaved, onCancel, flash }: {
           </label>
         ) : null}
         <label className="kk-span-2">ชื่อทริป<input required minLength={3} maxLength={120} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-        <label>จังหวัด<input required minLength={2} maxLength={60} value={form.destination} onChange={(e) => set({ destination: e.target.value })} /></label>
-        <label>ย่าน / จุดนัด<input maxLength={80} value={form.area} onChange={(e) => set({ area: e.target.value })} /></label>
+        <label>จังหวัด
+          <select required value={form.province ?? DEFAULT_PROVINCE} onChange={(e) => set({ province: e.target.value, destination: e.target.value })}>
+            {REGIONS.map((region) => (
+              <optgroup key={region} label={REGION_LABEL[region]}>
+                {PROVINCES.filter((p) => p.region === region).map((p) => <option key={p.th} value={p.th}>{p.th}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        <label>ย่าน / ชื่อจุดนัด<input maxLength={80} placeholder="เช่น ประตูท่าแพ" value={form.area} onChange={(e) => set({ area: e.target.value })} /></label>
+        <div className="kk-span-2 kk-maps-field">
+          <label htmlFor="trip-maps-url">ลิงก์ Google Maps จุดนัดพบ <span className="kk-muted">(ไม่บังคับ)</span></label>
+          <input id="trip-maps-url" type="url" inputMode="url" maxLength={500} autoComplete="off" spellCheck={false}
+            placeholder="https://maps.app.goo.gl/… หรือ https://www.google.com/maps/…" value={mapsInput}
+            aria-invalid={!mapsValid} aria-describedby="trip-maps-hint" onChange={(e) => setMapsInput(e.target.value)} />
+          <p id="trip-maps-hint" className={mapsValid ? "kk-maps-field__hint" : "kk-form-error"} role={mapsValid ? undefined : "alert"}>
+            {!mapsUrl ? "เปิด Google Maps → ปักหมุดจุดนัด → แชร์ → คัดลอกลิงก์ มาวางที่นี่ ไม่ต้องกรอกพิกัดเอง"
+              : !mapsValid ? "ลิงก์นี้ไม่ใช่ Google Maps ใช้ลิงก์จาก google.com/maps หรือ maps.app.goo.gl"
+              : mapsCoords ? `พบพิกัด ${mapsCoords.lat.toFixed(5)}, ${mapsCoords.lon.toFixed(5)} ทริปจะมีหมุดบนแผนที่`
+              : "ไม่พบพิกัดในลิงก์นี้ (เช่น ลิงก์ย่อ) ทริปจะไม่มีหมุดบนแผนที่ แต่ผู้จองยังกดเปิดจุดนัดใน Google Maps ได้"}
+          </p>
+          {mapsUrl && mapsValid ? (
+            <a className="kk-button kk-button--ghost kk-maps-field__open" href={mapsUrl} target="_blank" rel="noopener noreferrer">
+              ทดลองเปิดใน Google Maps <span aria-hidden="true">↗</span><span className="kk-visually-hidden"> (เปิดแท็บใหม่)</span>
+            </a>
+          ) : null}
+        </div>
         <label>เริ่ม<input type="datetime-local" required value={toLocalInput(form.starts_at || null)} onChange={(e) => set({ starts_at: fromLocalInput(e.target.value) ?? "" })} /></label>
         <label>สิ้นสุด<input type="datetime-local" value={toLocalInput(form.ends_at)} onChange={(e) => set({ ends_at: fromLocalInput(e.target.value) })} /></label>
         <label>ราคา/คน (บาท)<input type="number" required min={0} max={200000} value={form.price_thb} onChange={(e) => set({ price_thb: Number(e.target.value) })} /></label>
         <label>จำนวนที่นั่ง<input type="number" required min={Math.max(1, trip?.seats_taken ?? 1)} max={maxCapacity} value={form.capacity} onChange={(e) => set({ capacity: Number(e.target.value) })} /></label>
-        <label>ละติจูด<input type="number" step="any" min={-90} max={90} value={form.lat ?? ""} onChange={(e) => set({ lat: e.target.value === "" ? null : Number(e.target.value) })} /></label>
-        <label>ลองจิจูด<input type="number" step="any" min={-180} max={180} value={form.lon ?? ""} onChange={(e) => set({ lon: e.target.value === "" ? null : Number(e.target.value) })} /></label>
         <label className="kk-span-2">รายละเอียด<textarea rows={4} maxLength={4000} value={form.description} onChange={(e) => set({ description: e.target.value })} /></label>
         <label>สถานะ
           <select value={form.status} onChange={(e) => set({ status: e.target.value as TripInput["status"] })}>

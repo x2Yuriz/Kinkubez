@@ -313,6 +313,15 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Backfill accounts that signed up before this migration ran (same rules as the trigger).
+insert into public.profiles (id, display_name, avatar_url)
+select u.id,
+  left(coalesce(u.raw_user_meta_data ->> 'full_name', u.raw_user_meta_data ->> 'name', split_part(coalesce(u.email, ''), '@', 1), ''), 80),
+  case when u.raw_user_meta_data ->> 'avatar_url' ~ '^https://' and char_length(u.raw_user_meta_data ->> 'avatar_url') <= 500
+    then u.raw_user_meta_data ->> 'avatar_url' end
+from auth.users u
+on conflict (id) do nothing;
+
 -- Trip rules that column grants cannot express.
 create or replace function public.guard_trip_update()
 returns trigger language plpgsql set search_path = ''

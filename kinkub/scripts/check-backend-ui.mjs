@@ -15,7 +15,7 @@ const browser = await chromium.launch({
 });
 
 let failures = 0;
-const routes = ["/trips", "/login", "/account", "/my-trips", "/admin", "/auth/callback"];
+const routes = ["/trips", "/login", "/account", "/my-trips", "/admin", "/auth/callback", "/auth/reset"];
 
 for (const [label, viewport] of [["desktop", { width: 1366, height: 860 }], ["phone", { width: 375, height: 760 }]]) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce" });

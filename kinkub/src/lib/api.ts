@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { toProvince } from "./provinces";
 
 export type AppRole = "traveler" | "buddy" | "guide" | "admin";
 export type ProviderStatus = "none" | "pending" | "approved" | "rejected";
@@ -41,8 +42,12 @@ export type TripRow = {
   type: TripType;
   title: string;
   description: string;
+  /** Mirrors province for new trips; kept for older rows and bookings. */
   destination: string;
+  province: string | null;
   area: string;
+  /** Google Maps link to the meeting point; lat/lon are parsed from it by the database. */
+  meeting_point_url: string | null;
   starts_at: string;
   ends_at: string | null;
   price_thb: number;
@@ -57,7 +62,8 @@ export type TripRow = {
   organizer?: Organizer | null;
 };
 
-export type TripInput = Pick<TripRow, "type" | "title" | "description" | "destination" | "area" | "starts_at" | "ends_at" | "price_thb" | "capacity" | "image_url" | "lat" | "lon" | "status">;
+// lat/lon are server-owned: the database derives them from meeting_point_url.
+export type TripInput = Pick<TripRow, "type" | "title" | "description" | "destination" | "province" | "area" | "meeting_point_url" | "starts_at" | "ends_at" | "price_thb" | "capacity" | "image_url" | "status">;
 
 export type ItineraryItem = { id?: string; trip_id?: string; position?: number; time_label: string; title: string; details: string };
 
@@ -92,7 +98,7 @@ export type AdminVerification = VerificationRequest & { email: string; display_n
 export type AdminUser = { id: string; email: string; display_name: string; role: AppRole; requested_role: AppRole | null; provider_status: ProviderStatus; is_suspended: boolean; service_area: string; created_at: string };
 
 const TRIP_COLUMNS =
-  "id, organizer_id, type, title, description, destination, area, starts_at, ends_at, price_thb, capacity, seats_taken, image_url, lat, lon, status, is_sample, created_at, organizer:profiles!trips_organizer_id_fkey(id, display_name, avatar_url, role, provider_status, service_area)";
+  "id, organizer_id, type, title, description, destination, province, area, meeting_point_url, starts_at, ends_at, price_thb, capacity, seats_taken, image_url, lat, lon, status, is_sample, created_at, organizer:profiles!trips_organizer_id_fkey(id, display_name, avatar_url, role, provider_status, service_area)";
 const BOOKING_COLUMNS =
   "id, trip_id, traveler_id, party_size, unit_price_thb, total_price_thb, status, note, created_at, updated_at, trip:trips(id, title, starts_at, status, organizer_id, destination), traveler:profiles!bookings_traveler_id_fkey(id, display_name)";
 const REVIEW_COLUMNS = "id, trip_id, reviewer_id, reviewer_name, rating, body, is_hidden, created_at";
@@ -133,11 +139,11 @@ async function run<T>(query: Result<T>): Promise<T> {
 }
 
 // ---------- Trips ----------
-export type TripSearch = { destination?: string; type?: TripType; from?: string; to?: string; minSeats?: number; maxPrice?: number };
+export type TripSearch = { province?: string; type?: TripType; from?: string; to?: string; minSeats?: number; maxPrice?: number };
 
 export async function searchTrips(filters: TripSearch) {
   let query = db().from("trips").select(TRIP_COLUMNS).eq("status", "published").gt("starts_at", new Date().toISOString()).order("starts_at");
-  if (filters.destination) query = query.eq("destination", filters.destination);
+  if (filters.province) query = query.eq("province", toProvince(filters.province) ?? filters.province);
   if (filters.type) query = query.eq("type", filters.type);
   if (filters.from) query = query.gte("starts_at", filters.from);
   if (filters.to) query = query.lt("starts_at", filters.to);
