@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 800" preserveAspectRatio="none">
+  <!-- Alpha mask for the hero coast: solid above, a brushed wave shoreline below that dissolves into the cream page. -->
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.62" stop-color="#fff"/>
+      <stop offset="0.9" stop-color="#fff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.06" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="22"/>
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+  <g filter="url(#soft)" fill="url(#fade)">
+    <path d="M0 0H1440V610C1360 650 1290 600 1200 640S1040 700 940 660 760 610 660 650 470 720 360 680 170 620 90 650 20 670 0 660Z"/>
+  </g>
+  <!-- Foam lines trailing the shore -->
+  <g filter="url(#soft)" fill="#fff">
+    <path opacity="0.5" d="M0 690C120 660 220 720 360 712S600 670 720 690 960 735 1100 705 1330 680 1440 700V716C1330 700 1200 728 1090 726S860 700 720 708 480 735 350 730 120 690 0 708Z"/>
+    <path opacity="0.25" d="M0 740C160 725 300 760 460 752S760 730 900 748 1220 770 1440 744V756C1240 780 1080 770 900 762S600 748 460 768 140 742 0 756Z"/>
+  </g>
+</svg>
